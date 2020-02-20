@@ -1,12 +1,47 @@
-import React from 'react';
-import { FlatList, Platform, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import {
+  FlatList,
+  Platform,
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  Text
+} from 'react-native';
 import { HeaderButtons, Item } from 'react-navigation-header-buttons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import HeaderButton from '../../components/UI/HeaderButton';
 import OrderItem from '../../components/shop/OrderItem';
+import * as ordersActions from '../../store/actions/order';
+import colors from '../../constants/colors';
 
 const Orders = props => {
+  const [isLoading, setIsLoading] = useState(false);
   const orders = useSelector(state => state.orders.orders);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    setIsLoading(true);
+    dispatch(ordersActions.fetchOrders()).then(() => {
+      setIsLoading(false);
+    });
+  }, [dispatch]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size='large' color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>No order found</Text>
+      </View>
+    );
+  }
+
   return (
     <FlatList
       data={orders}
@@ -35,5 +70,13 @@ Orders.navigationOptions = navData => {
     )
   };
 };
+
+const styles = StyleSheet.create({
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+});
 
 export default Orders;
